@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+
+  memberIn Member[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+
+  tasks   Task[]
+  members Member[]
+
+  @@map("projects")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  VIWER
+}
+
+model Member {
+  id        String    @id @default(uuid())
+  role      Role
+  userId    String
+  projectId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("members")
+}
+
+model Task {
+  id        String    @id @default(uuid())
+  name      String
+  doneAt    DateTime?
+  projectId String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  deletedAt DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model Audit {
+  id        String   @id @default(uuid())
+  model     String
+  operation String
+  data      Json
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@map("audits")
+}
